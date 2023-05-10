@@ -1,6 +1,7 @@
 import inquirer from "inquirer";
 import chalk from "chalk";
 import fs from "fs";
+import boxen from "boxen";
 
 const SCORE_FILE = "./highscore.json";
 let highscore = 0;
@@ -41,7 +42,7 @@ const convertAnswer = (answer) => {
   return convertedAnswer.charAt(0).toUpperCase() + convertedAnswer.slice(1);
 };
 
-const guessTheDegree = async () => {
+const degreeQuizz = async () => {
   const startTime = Date.now();
   let elapsedTime = 0;
 
@@ -96,19 +97,29 @@ const guessTheDegree = async () => {
 };
 
 const displayLeaderboard = () => {
-  console.log("\n=== Leaderboard ===");
-  console.log(`Final score: ${currentScore}`);
+  console.log("\n" + chalk.bgBlue("== LEADERBOARD =="));
+
+  let leaderboardBox = `\nFinal score: ${chalk.green(currentScore)}\n`;
+
   if (currentScore > highscore) {
-    console.log(chalk.green("NEW HIGH SCORE! 🏆"));
+    leaderboardBox += chalk.green("NEW HIGH SCORE! 🏆");
     highscore = currentScore;
     fs.writeFileSync(SCORE_FILE, JSON.stringify({ highscore }));
   } else {
-    console.log(`Highscore: ${highscore}`);
+    leaderboardBox += `Highscore: ${chalk.yellow(highscore)}\n`;
   }
+
+  console.log(
+    boxen(leaderboardBox, {
+      padding: 1,
+      borderColor: "blue",
+      borderStyle: "double",
+    })
+  );
 };
 
 const games = {
-  "Degré Quizz 🌡": guessTheDegree,
+  "Degré Quizz 🌡": degreeQuizz,
 };
 
 inquirer
