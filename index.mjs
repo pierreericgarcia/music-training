@@ -4,11 +4,7 @@ import fs from "fs";
 import boxen from "boxen";
 
 const SCORE_FILE = "./highscore.json";
-let highscore = 0;
-
-if (fs.existsSync(SCORE_FILE)) {
-  highscore = JSON.parse(fs.readFileSync(SCORE_FILE)).highscore;
-}
+const GAME_DURATION = 120;
 
 const scales = {
   major: [
@@ -46,7 +42,7 @@ const degreeQuizz = async () => {
   const startTime = Date.now();
   let elapsedTime = 0;
 
-  while (elapsedTime < 60) {
+  while (elapsedTime < GAME_DURATION) {
     const scaleIndex = Math.floor(Math.random() * scales.major.length);
     const degree = Math.floor(Math.random() * scales.major[scaleIndex].length);
 
@@ -90,7 +86,7 @@ const degreeQuizz = async () => {
       console.log(
         `Score: ${currentScore}, Multiplier: x${currentMultiplier}\n`
       );
-    } while (!correct && elapsedTime < 60);
+    } while (!correct && elapsedTime < GAME_DURATION);
   }
 
   displayLeaderboard();
@@ -101,13 +97,26 @@ const displayLeaderboard = () => {
 
   let leaderboardBox = `\nFinal score: ${chalk.green(currentScore)}\n`;
 
-  if (currentScore > highscore) {
-    leaderboardBox += chalk.green("NEW HIGH SCORE! 🏆");
-    highscore = currentScore;
-    fs.writeFileSync(SCORE_FILE, JSON.stringify({ highscore }));
+  let scores;
+  if (fs.existsSync(SCORE_FILE)) {
+    scores = JSON.parse(fs.readFileSync(SCORE_FILE));
   } else {
-    leaderboardBox += `Highscore: ${chalk.yellow(highscore)}\n`;
+    scores = {};
   }
+
+  if (
+    !scores[`highscore_${GAME_DURATION}`] ||
+    currentScore > scores[`highscore_${GAME_DURATION}`]
+  ) {
+    leaderboardBox += chalk.green("NEW HIGH SCORE! 🏆");
+    scores[`highscore_${GAME_DURATION}`] = currentScore;
+  } else {
+    leaderboardBox += `Highscore: ${chalk.yellow(
+      scores[`highscore_${GAME_DURATION}`]
+    )}\n`;
+  }
+
+  fs.writeFileSync(SCORE_FILE, JSON.stringify(scores));
 
   console.log(
     boxen(leaderboardBox, {
